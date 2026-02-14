@@ -19,10 +19,12 @@ export class JobApplication {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.applications, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => JobOffer, { onDelete: 'CASCADE' })
+  @ManyToOne(() => JobOffer, (offer) => offer.applications, {
+    onDelete: 'CASCADE',
+  })
   jobOffer: JobOffer;
 
   @Column({
