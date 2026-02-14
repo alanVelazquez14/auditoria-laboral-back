@@ -19,11 +19,17 @@ Este proyecto permite registrar usuarios, ofertas laborales, postulaciones, y ca
 ## 📁 Estructura del proyecto
 
 src/
+
 ├─ common/ # Enumeraciones, constantes, utils
+
 ├─ users/ # Entidad User, DTOs, services, controllers
+
 ├─ companies/ # Entidad Company, DTOs, services, controllers
+
 ├─ job-offers/ # Entidad JobOffer, DTOs, services, controllers
+
 ├─ job-applications/ # Entidad JobApplication, DTOs, services, controllers
+
 ├─ app.module.ts # Módulo raíz
 
 
