@@ -12,6 +12,9 @@ import { Seniority } from '../common/enums/seniority.enum';
 import { RoleCategory } from '../common/enums/role-category.enum';
 import { CvType } from '../common/enums/cv-type.enum';
 import { UserSkill } from '../user-skills/user-skill.entity';
+import { Score } from '../scores/score.entity';
+import { Diagnostic } from '../diagnostics/diagnostic.entity';
+import { JobApplication } from '../job-applications/job-application.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -81,4 +84,13 @@ export class User {
 
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
   userSkills: UserSkill[];
+
+  @OneToMany(() => JobApplication, (app) => app.user)
+  applications: JobApplication[];
+
+  @OneToMany(() => Diagnostic, (diagnostic) => diagnostic.user)
+  diagnostics: Diagnostic[];
+
+  @OneToMany(() => Score, (score) => score.user)
+  scores: Score[];
 }
