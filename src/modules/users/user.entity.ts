@@ -6,12 +6,13 @@ import {
   UpdateDateColumn,
   Index,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Seniority } from '../common/enums/seniority.enum';
 import { RoleCategory } from '../common/enums/role-category.enum';
 import { CvType } from '../common/enums/cv-type.enum';
+import { UserSkill } from '../user-skills/user-skill.entity';
 
-@Entity('users')
 @Entity('users')
 @Index(['email'], { unique: true })
 @Index(['roleTarget'])
@@ -31,37 +32,37 @@ export class User {
   password: string;
 
   @Column({ type: 'date', nullable: true })
-  birth: Date;
+  birth?: Date;
 
   @Column({
     type: 'enum',
     enum: Seniority,
     nullable: true,
   })
-  seniority: Seniority;
+  seniority?: Seniority;
 
   @Column({ type: 'int', default: 0 })
   yearsOfExperience: number;
 
   @Column({ nullable: true })
-  location: string;
+  location?: string;
 
   @Column({
     type: 'enum',
     enum: RoleCategory,
     nullable: true,
   })
-  roleTarget: RoleCategory;
+  roleTarget?: RoleCategory;
 
   @Column({
     type: 'enum',
     enum: CvType,
     nullable: true,
   })
-  cvType: CvType;
+  cvType?: CvType;
 
   @Column({ nullable: true })
-  cvUrl: string;
+  cvUrl?: string;
 
   @Column({ default: false })
   profileCompleted: boolean;
@@ -77,4 +78,7 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
+  userSkills: UserSkill[];
 }
