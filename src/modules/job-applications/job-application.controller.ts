@@ -1,6 +1,5 @@
 import { Controller, Post, Param, Patch, Body, Get } from '@nestjs/common';
 import { JobApplicationsService } from './job-applications.service';
-import { JobStatus } from '../common/enums/job-status.enum';
 import { ChangeStatusDto } from './dto/change-status.dto';
 
 @Controller('job-applications')

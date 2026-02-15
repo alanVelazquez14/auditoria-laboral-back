@@ -107,7 +107,10 @@ export class JobApplicationsService {
 
     await this.statusHistoryRepository.save(history);
 
-    return application;
+    return this.jobApplicationRepository.findOne({
+      where: { id: applicationId },
+      relations: ['statusHistory'],
+    });
   }
 
   async findOne(id: string) {

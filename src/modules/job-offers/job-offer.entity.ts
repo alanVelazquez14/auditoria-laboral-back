@@ -44,8 +44,9 @@ export class JobOffer {
 
   @ManyToOne(() => Company, (company) => company.jobOffers, {
     onDelete: 'CASCADE',
+    nullable: true,       // solo por ahora, luego se puede hacer obligatorio
   })
-  company: Company;
+  company?: Company;
 
   @OneToMany(() => JobApplication, (app) => app.jobOffer)
   applications: JobApplication[];
