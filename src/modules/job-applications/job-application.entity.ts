@@ -7,11 +7,13 @@ import {
   DeleteDateColumn,
   Index,
   Column,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { JobOffer } from '../job-offers/job-offer.entity';
 import { JobStatus } from '../common/enums/job-status.enum';
 import { WorkMode } from '../common/enums/work-mode.enum';
+import { JobApplicationStatusHistory } from './job-application-status-history.entity';
 
 @Entity('job_applications')
 @Index(['user', 'jobOffer'], { unique: true })
@@ -51,4 +53,11 @@ export class JobApplication {
 
   @DeleteDateColumn()
   deletedAt?: Date;
+
+  @OneToMany(
+    () => JobApplicationStatusHistory,
+    (history) => history.application,
+    { cascade: true },
+  )
+  statusHistory: JobApplicationStatusHistory[];
 }

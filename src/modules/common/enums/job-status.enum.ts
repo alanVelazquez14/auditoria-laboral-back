@@ -1,6 +1,7 @@
 export enum JobStatus {
-  APPLIED = 'applied',
-  REJECTED = 'rejected',
-  INTERVIEW = 'interview',
-  OFFER = 'offer',
+  APPLIED = 'APPLIED',
+  REVIEWING = 'REVIEWING',
+  INTERVIEW = 'INTERVIEW',
+  HIRED = 'HIRED',
+  REJECTED = 'REJECTED',
 }
