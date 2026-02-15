@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { JobApplication } from './job-application.entity';
-import { JobStatus } from '../common/enums/job-status.enum';
+import { JobStatus } from '../../common/enums/job-status.enum';
 
 @Entity('job_application_status_history')
 export class JobApplicationStatusHistory {
@@ -22,7 +22,19 @@ export class JobApplicationStatusHistory {
     type: 'enum',
     enum: JobStatus,
   })
-  status: JobStatus;
+  previousStatus: JobStatus;
+
+  @Column({
+    type: 'enum',
+    enum: JobStatus,
+  })
+  newStatus: JobStatus;
+
+  @Column({ nullable: true })
+  changedBy?: string; // recruiterId o 'system'
+
+  @Column({ type: 'text', nullable: true })
+  reason?: string;
 
   @CreateDateColumn()
   changedAt: Date;

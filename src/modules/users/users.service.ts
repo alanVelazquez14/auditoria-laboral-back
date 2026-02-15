@@ -18,6 +18,12 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const { email, password, fullName } = createUserDto;
 

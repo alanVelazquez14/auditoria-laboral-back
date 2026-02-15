@@ -25,4 +25,14 @@ export class JobApplicationsController {
   findOne(@Param('id') id: string) {
     return this.jobApplicationsService.findOne(id);
   }
+
+  @Get(':id/history')
+  async getHistory(@Param('id') id: string) {
+    return this.jobApplicationsService.getHistory(id);
+  }
+
+  @Get('dev/seed')
+  async seed() {
+    return this.jobApplicationsService.seedTestData();
+  }
 }

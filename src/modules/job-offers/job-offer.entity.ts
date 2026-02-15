@@ -12,7 +12,7 @@ import {
 import { Company } from '../companies/company.entity';
 import { Seniority } from '../common/enums/seniority.enum';
 import { RoleCategory } from '../common/enums/role-category.enum';
-import { JobApplication } from '../job-applications/job-application.entity';
+import { JobApplication } from '../job-applications/entities/job-application.entity';
 
 @Entity('job_offers')
 @Index(['roleCategory'])
