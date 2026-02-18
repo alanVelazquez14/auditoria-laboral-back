@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { LoginDto } from '../auth/dto/login.dto';
 
 @Controller('users')
 export class UsersController {
@@ -24,5 +25,10 @@ export class UsersController {
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
     return this.usersService.updateProfile(id, updateProfileDto);
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.usersService.login(loginDto);
   }
 }
