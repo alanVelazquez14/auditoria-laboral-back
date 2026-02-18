@@ -5,20 +5,12 @@ import { JobApplicationStatusHistory } from './entities/job-application-status-h
 import { UsersModule } from '../users/users.module';
 import { JobApplicationsService } from './job-applications.service';
 import { JobApplicationsController } from './job-application.controller';
-import { JobOffersModule } from '../job-offers/job-offers.module';
-import { JobOffer } from '../job-offers/job-offer.entity';
 import { User } from '../users/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      JobApplication,
-      JobApplicationStatusHistory,
-      User,
-      JobOffer,
-    ]),
+    TypeOrmModule.forFeature([JobApplication, JobApplicationStatusHistory, User]),
     UsersModule,
-    JobOffersModule,
   ],
   controllers: [JobApplicationsController],
   providers: [JobApplicationsService],

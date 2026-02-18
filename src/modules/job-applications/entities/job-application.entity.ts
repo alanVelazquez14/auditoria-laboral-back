@@ -10,24 +10,33 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../users/user.entity';
-import { JobOffer } from '../../job-offers/job-offer.entity';
 import { JobStatus } from '../../common/enums/job-status.enum';
 import { WorkMode } from '../../common/enums/work-mode.enum';
 import { JobApplicationStatusHistory } from './job-application-status-history.entity';
+import { Company } from 'src/modules/companies/company.entity';
 
 @Entity('job_applications')
-@Index(['user', 'jobOffer'], { unique: true })
+@Index(['user', 'companyName', 'position'])
 export class JobApplication {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.applications, { onDelete: 'CASCADE' })
-  user: User;
-
-  @ManyToOne(() => JobOffer, (offer) => offer.applications, {
+  @ManyToOne(() => User, (user) => user.applications, {
     onDelete: 'CASCADE',
   })
-  jobOffer: JobOffer;
+  user: User;
+
+  @ManyToOne(() => Company, { nullable: true })
+  company?: Company;
+
+  @Column({ nullable: true })
+  companyName: string;
+
+  @Column()
+  position: string;
+
+  @Column({ nullable: true })
+  jobUrl?: string;
 
   @Column({
     type: 'enum',
@@ -37,13 +46,19 @@ export class JobApplication {
   status: JobStatus;
 
   @Column({ type: 'int', default: 1 })
-  matchLevel: number; // 1-5 según tu arquitectura
+  matchLevel: number; // 1-5
 
   @Column({ type: 'enum', enum: WorkMode, nullable: true })
-  mode: WorkMode;
+  mode?: WorkMode;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   appliedAt: Date;
+
+  @Column({ type: 'numeric', nullable: true })
+  salaryExpected?: number;
+
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
 
   @CreateDateColumn()
   createdAt: Date;

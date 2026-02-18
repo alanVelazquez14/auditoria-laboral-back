@@ -6,9 +6,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   Index,
-  OneToMany,
 } from 'typeorm';
-import { JobOffer } from '../job-offers/job-offer.entity';
 
 @Entity('companies')
 @Index(['name'], { unique: true })
@@ -27,9 +25,6 @@ export class Company {
 
   @Column({ nullable: true, type: 'text' })
   description?: string;
-
-  @OneToMany(() => JobOffer, (job) => job.company)
-  jobOffers: JobOffer[];
 
   @CreateDateColumn()
   createdAt: Date;

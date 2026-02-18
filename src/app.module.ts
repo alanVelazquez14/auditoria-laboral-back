@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
-import { JobOffersModule } from './modules/job-offers/job-offers.module';
 import { JobApplicationsModule } from './modules/job-applications/job-applications.module';
 
 @Module({
@@ -26,7 +25,6 @@ import { JobApplicationsModule } from './modules/job-applications/job-applicatio
       }),
     }),
     UsersModule,
-    JobOffersModule,
     JobApplicationsModule,
   ],
 })
