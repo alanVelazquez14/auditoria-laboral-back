@@ -28,7 +28,7 @@ export class UsersService {
     });
   }
 
-  async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async register(createUserDto: CreateUserDto): Promise<any> {
     const { email, password, fullName } = createUserDto;
 
     const existingUser = await this.userRepository.findOne({
@@ -49,7 +49,12 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(user);
 
-    return this.toResponseDto(savedUser);
+    const token = this.jwtService.sign({ id: savedUser.id, email: savedUser.email });
+
+    return {
+      ...this.toResponseDto(savedUser),
+      token,
+    };
   }
 
   private toResponseDto(user: User): UserResponseDto {
@@ -63,7 +68,7 @@ export class UsersService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'fullName'], // Añade explícitamente los campos
+      select: ['id', 'email', 'password', 'fullName'],
     });
 
     if (!user) {
@@ -102,26 +107,43 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    Object.assign(user, updateProfileDto);
+    // 1. Sincronización de compatibilidad:
+    // Mapeamos los campos nuevos del Wizard a los campos "core" de la entidad
+    // Esto evita que 'roleTarget' o 'yearsOfExperience' queden en null/0
+    const compatibilityMapping = {
+      roleTarget: updateProfileDto.targetRole, // Mapea backend/frontend
+      yearsOfExperience: this.parseYears(updateProfileDto.yearsExperience),
+    };
 
-    user.profileCompleted = this.isProfileComplete(user);
+    // 2. Fusionar datos
+    Object.assign(user, updateProfileDto, compatibilityMapping);
+
+    // 3. Nueva lógica de validación de completitud
+    user.profileCompleted = this.checkIfProfileIsActuallyComplete(user);
 
     const updatedUser = await this.userRepository.save(user);
 
     return this.toResponseDto(updatedUser);
   }
 
-  private isProfileComplete(user: User): boolean {
-    return (
-      !!user.birth &&
-      !!user.seniority &&
-      user.yearsOfExperience !== null &&
-      user.yearsOfExperience !== undefined &&
-      user.yearsOfExperience >= 0 &&
-      !!user.location &&
-      !!user.roleTarget &&
-      !!user.cvType &&
-      !!user.cvUrl
-    );
+  private parseYears(years: string): number {
+    if (!years) return 0;
+    const match = years.match(/\d+/);
+    return match ? parseInt(match[0]) : 0;
+  }
+
+  private checkIfProfileIsActuallyComplete(user: User): boolean {
+    const requiredFields = [
+      user.location,
+      user.seniority,
+      user.targetRole,
+      user.cvUrl,
+      user.workPreference,
+      user.englishLevel,
+      user.stack && user.stack.length > 0, // Que tenga al menos una tech
+      user.consentToShareData === true, // Que haya aceptado términos
+    ];
+
+    return requiredFields.every((field) => !!field);
   }
 }

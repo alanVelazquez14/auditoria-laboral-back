@@ -34,38 +34,84 @@ export class User {
   @Column({ select: false })
   password: string;
 
+  // --- Datos del Profile Wizard ---
+
   @Column({ type: 'date', nullable: true })
   birth?: Date;
 
-  @Column({
-    type: 'enum',
-    enum: Seniority,
-    nullable: true,
-  })
+  @Column({ type: 'enum', enum: Seniority, nullable: true })
   seniority?: Seniority;
 
   @Column({ type: 'int', default: 0 })
-  yearsOfExperience: number;
+  yearsOfExperience: number; // Campo legacy (se llena vía compatibilidad)
+
+  @Column({ nullable: true })
+  yearsExperience?: string; // Campo nuevo (ej: "1-3", "5+")
 
   @Column({ nullable: true })
   location?: string;
 
-  @Column({
-    type: 'enum',
-    enum: RoleCategory,
-    nullable: true,
-  })
+  @Column({ type: 'enum', enum: RoleCategory, nullable: true })
   roleTarget?: RoleCategory;
 
-  @Column({
-    type: 'enum',
-    enum: CvType,
-    nullable: true,
-  })
+  @Column({ nullable: true })
+  targetRole?: string; // Para recibirlo directamente del DTO
+
+  @Column({ type: 'enum', enum: CvType, nullable: true })
   cvType?: CvType;
 
   @Column({ nullable: true })
   cvUrl?: string;
+
+  @Column({ nullable: true })
+  isRoleOptimized?: string; // "complete" | "partial" | "no"
+
+  @Column({ nullable: true })
+  workPreference?: string; // "REMOTO" | "PRESENCIAL" | "HIBRIDO"
+
+  @Column({ nullable: true })
+  englishLevel?: string;
+
+  @Column('simple-array', { nullable: true })
+  stack?: string[];
+
+  @Column({ nullable: true })
+  stackYears?: string;
+
+  @Column('simple-array', { nullable: true })
+  stackExperienceType?: string[];
+
+  @Column({ type: 'boolean', nullable: true })
+  stackMatchesCV?: boolean;
+
+  // Datos de Estrategia
+  @Column({ nullable: true })
+  recentApplications?: string;
+
+  @Column({ nullable: true })
+  interviews?: string;
+
+  @Column({ nullable: true })
+  recentRejections?: string;
+
+  @Column('simple-array', { nullable: true })
+  applicationType?: string[];
+
+  // Redes Sociales (Guardado como JSON para facilitar la estructura)
+  @Column({ type: 'json', nullable: true })
+  portfolioLinks?: {
+    portfolio: string;
+    linkedin: string;
+    github: string;
+  };
+
+  @Column({ type: 'boolean', default: false })
+  consentToShareData: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  additionalNotes?: string;
+
+  // --- Estados y Relaciones ---
 
   @Column({ default: false })
   profileCompleted: boolean;
@@ -82,6 +128,7 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  // ... (Relaciones OneToMany se mantienen igual)
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
   userSkills: UserSkill[];
 
