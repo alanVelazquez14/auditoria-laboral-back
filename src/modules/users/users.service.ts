@@ -49,7 +49,10 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(user);
 
-    const token = this.jwtService.sign({ id: savedUser.id, email: savedUser.email });
+    const token = this.jwtService.sign({
+      id: savedUser.id,
+      email: savedUser.email,
+    });
 
     return {
       ...this.toResponseDto(savedUser),
@@ -126,6 +129,18 @@ export class UsersService {
     return this.toResponseDto(updatedUser);
   }
 
+  async findOne(id: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    return this.toResponseDto(user);
+  }
+
   private parseYears(years: string): number {
     if (!years) return 0;
     const match = years.match(/\d+/);
@@ -140,8 +155,8 @@ export class UsersService {
       user.cvUrl,
       user.workPreference,
       user.englishLevel,
-      user.stack && user.stack.length > 0, // Que tenga al menos una tech
-      user.consentToShareData === true, // Que haya aceptado términos
+      user.stack && user.stack.length > 0,
+      user.consentToShareData === true,
     ];
 
     return requiredFields.every((field) => !!field);

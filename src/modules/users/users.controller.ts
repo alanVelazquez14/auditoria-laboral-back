@@ -22,6 +22,15 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+    return user;
+  }
+
   @Post('register')
   register(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.register(createUserDto);
