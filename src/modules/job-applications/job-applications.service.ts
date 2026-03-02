@@ -124,22 +124,20 @@ export class JobApplicationsService {
     return application;
   }
 
-  async getHistory(applicationId: string) {
-    const exists = await this.jobApplicationRepository.findOne({
-      where: { id: applicationId },
-    });
-
-    if (!exists) {
-      throw new NotFoundException('Application not found');
-    }
-
-    const history = await this.statusHistoryRepository.find({
-      where: { application: { id: applicationId } },
-      order: { changedAt: 'ASC' },
-    });
-
-    return history;
+  async getHistory(userId: string) {
+  const userExists = await this.userRepository.findOne({ where: { id: userId } });
+  if (!userExists) {
+    throw new NotFoundException('User not found');
   }
+
+  const applications = await this.jobApplicationRepository.find({
+    where: { user: { id: userId } },
+    relations: ['statusHistory'],
+    order: { createdAt: 'DESC' },
+  });
+
+  return applications;
+}
 
   async seedTestData() {
     const users = await this.userRepository.find();

@@ -6,10 +6,10 @@ import {
   Min,
   Max,
   IsUrl,
-  IsNumber,
 } from 'class-validator';
 import { WorkMode } from '../../common/enums/work-mode.enum';
 import { RoleCategory } from 'src/modules/common/enums/role-category.enum';
+import { Transform } from 'class-transformer';
 
 export class CreateJobApplicationDto {
   @IsString()
@@ -26,8 +26,13 @@ export class CreateJobApplicationDto {
   @IsEnum(WorkMode)
   mode?: WorkMode;
 
-  @IsOptional()
-  @IsUrl()
+  @IsUrl(
+    {
+      require_protocol: true,
+      require_tld: false,
+    },
+    { message: 'La URL no es válida' },
+  )
   jobUrl?: string;
 
   @IsOptional()

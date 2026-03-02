@@ -5,6 +5,8 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
+import { CloudinaryProvider } from '../common/enums/cloudinary/cloudinary.provider';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, CloudinaryService, CloudinaryProvider],
   exports: [UsersService],
 })
 export class UsersModule {}

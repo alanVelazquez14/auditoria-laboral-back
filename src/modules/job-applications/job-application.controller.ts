@@ -8,8 +8,20 @@ export class JobApplicationsController {
   constructor(
     private readonly jobApplicationsService: JobApplicationsService,
   ) {}
+  @Get('dev/seed')
+  async seed() {
+    return this.jobApplicationsService.seedTestData();
+  }
 
-  // Crear nueva postulación
+  @Get(':id/history')
+  async getHistory(@Param('id') id: string) {
+    return this.jobApplicationsService.getHistory(id);
+  }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.jobApplicationsService.findOne(id);
+  }
+
   @Post(':userId')
   create(
     @Param('userId') userId: string,
@@ -18,27 +30,8 @@ export class JobApplicationsController {
     return this.jobApplicationsService.create(userId, dto);
   }
 
-  // Cambiar estado
   @Patch(':id/status')
   changeStatus(@Param('id') id: string, @Body() dto: ChangeStatusDto) {
     return this.jobApplicationsService.changeStatus(id, dto.status);
-  }
-
-  // Traer una postulación
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.jobApplicationsService.findOne(id);
-  }
-
-  // Traer historial
-  @Get(':id/history')
-  async getHistory(@Param('id') id: string) {
-    return this.jobApplicationsService.getHistory(id);
-  }
-
-  // Seed de desarrollo
-  @Get('dev/seed')
-  async seed() {
-    return this.jobApplicationsService.seedTestData();
   }
 }

@@ -7,31 +7,18 @@ import {
   IsBoolean,
   IsUrl,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { Seniority } from '../../common/enums/seniority.enum';
 import { RoleCategory } from '../../common/enums/role-category.enum';
 import { CvType } from '../../common/enums/cv-type.enum';
-
-class PortfolioLinksDto {
-  @IsOptional()
-  @IsString()
-  portfolio: string;
-
-  @IsOptional()
-  @IsString()
-  linkedin: string;
-
-  @IsOptional()
-  @IsString()
-  github: string;
-}
 
 export class UpdateProfileDto {
   @IsEnum(CvType)
   cvType: CvType;
 
   @IsUrl()
-  cvUrl: string;
+  @IsOptional()
+  cvUrl?: string;
 
   @IsString()
   isRoleOptimized: 'complete' | 'partial' | 'no';
@@ -59,6 +46,10 @@ export class UpdateProfileDto {
   // Step 4: Stack
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value : value?.split(',').filter(Boolean),
+  )
   stack: string[];
 
   @IsString()
@@ -70,6 +61,7 @@ export class UpdateProfileDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   stackMatchesCV: boolean;
 
   // Step 5: Strategy
@@ -87,9 +79,17 @@ export class UpdateProfileDto {
   applicationType: string[];
 
   // Step 6: Networks
-  @ValidateNested()
-  @Type(() => PortfolioLinksDto)
-  portfolioLinks: PortfolioLinksDto;
+  @IsOptional()
+  @IsString()
+  portfolio?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedin?: string;
+
+  @IsOptional()
+  @IsString()
+  github?: string;
 
   // Step 7: Final
   @IsArray()
@@ -98,6 +98,7 @@ export class UpdateProfileDto {
   interests: string[];
 
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   consentToShareData: boolean;
 
   @IsString()

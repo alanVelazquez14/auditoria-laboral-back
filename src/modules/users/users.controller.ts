@@ -6,16 +6,23 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginDto } from '../auth/dto/login.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get()
   findAll() {
@@ -37,11 +44,20 @@ export class UsersController {
   }
 
   @Patch(':id/profile')
+  @UseInterceptors(FileInterceptor('cvFile'))
   async updateProfile(
     @Param('id') id: string,
     @Body() updateProfileDto: UpdateProfileDto,
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<UserResponseDto> {
-    return this.usersService.updateProfile(id, updateProfileDto);
+    let cvUrl: string | undefined = undefined;
+    if (file) {
+      cvUrl = await this.cloudinaryService.uploadFile(file);
+    }
+    return this.usersService.updateProfile(id, {
+      ...updateProfileDto,
+      cvUrl: cvUrl || updateProfileDto.cvUrl,
+    });
   }
 
   @Post('login')
