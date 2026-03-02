@@ -39,7 +39,7 @@ export class JobApplicationsService {
       where: {
         user: { id: userId },
         companyName: dto.companyName,
-        position: dto.position,
+        position: dto.roleCategory,
       },
     });
 
@@ -50,9 +50,12 @@ export class JobApplicationsService {
       const newApplication = manager.create(JobApplication, {
         user: { id: userId },
         companyName: dto.companyName,
-        position: dto.position,
+        position: dto.roleCategory,
         jobUrl: dto.jobUrl,
         status: JobStatus.APPLIED,
+        mode: dto.mode,
+        matchLevel: dto.matchLevel,
+        notes: dto.message,
       });
 
       const savedApplication = await manager.save(newApplication);
@@ -70,6 +73,7 @@ export class JobApplicationsService {
       return savedApplication;
     });
   }
+
   async changeStatus(applicationId: string, newStatus: JobStatus) {
     const application = await this.jobApplicationRepository.findOne({
       where: { id: applicationId },
@@ -125,19 +129,22 @@ export class JobApplicationsService {
   }
 
   async getHistory(userId: string) {
-  const userExists = await this.userRepository.findOne({ where: { id: userId } });
-  if (!userExists) {
-    throw new NotFoundException('User not found');
+    const userExists = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
+
+    const applications = await this.jobApplicationRepository.find({
+      where: { user: { id: userId } },
+      relations: ['statusHistory'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return applications;
   }
-
-  const applications = await this.jobApplicationRepository.find({
-    where: { user: { id: userId } },
-    relations: ['statusHistory'],
-    order: { createdAt: 'DESC' },
-  });
-
-  return applications;
-}
+  
 
   async seedTestData() {
     const users = await this.userRepository.find();

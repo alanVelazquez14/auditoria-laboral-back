@@ -17,6 +17,7 @@ export class JobApplicationsController {
   async getHistory(@Param('id') id: string) {
     return this.jobApplicationsService.getHistory(id);
   }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobApplicationsService.findOne(id);

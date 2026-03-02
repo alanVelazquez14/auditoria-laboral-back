@@ -9,18 +9,13 @@ import {
 } from 'class-validator';
 import { WorkMode } from '../../common/enums/work-mode.enum';
 import { RoleCategory } from 'src/modules/common/enums/role-category.enum';
-import { Transform } from 'class-transformer';
 
 export class CreateJobApplicationDto {
   @IsString()
   companyName: string;
 
-  @IsString()
-  position: string;
-
-  @IsOptional()
   @IsEnum(RoleCategory)
-  roleCategory?: RoleCategory;
+  roleCategory: RoleCategory;
 
   @IsOptional()
   @IsEnum(WorkMode)
@@ -38,7 +33,7 @@ export class CreateJobApplicationDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(5)
+  @Max(10)
   matchLevel?: number;
 
   @IsOptional()
