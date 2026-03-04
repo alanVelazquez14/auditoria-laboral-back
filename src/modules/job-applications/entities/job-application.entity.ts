@@ -60,6 +60,9 @@ export class JobApplication {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
+  @Column({ type: 'int', nullable: true, default: 0 })
+  matchPercentage: number; // Valor de 0 a 100
+
   @CreateDateColumn()
   createdAt: Date;
 

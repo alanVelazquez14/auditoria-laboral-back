@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { JobApplicationsModule } from './modules/job-applications/job-applications.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
+import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -22,12 +24,13 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       }),
     }),
     UsersModule,
     JobApplicationsModule,
-    CheckoutModule
+    CheckoutModule,
+    DiagnosticsModule,
   ],
 })
 export class AppModule {}

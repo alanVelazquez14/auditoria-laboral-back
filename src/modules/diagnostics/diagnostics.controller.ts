@@ -5,18 +5,23 @@ import { DiagnosticsService } from './diagnostics.service';
 export class DiagnosticsController {
   constructor(private readonly diagnosticsService: DiagnosticsService) {}
 
-  @Post(':userId/profile')
-  generateProfile(@Param('userId') userId: string) {
-    return this.diagnosticsService.generateProfileDiagnostic(userId);
+  @Get(':userId/can-generate')
+  async checkStatus(@Param('userId') userId: string) {
+    return { canGenerate: await this.diagnosticsService.canGenerate(userId) };
   }
 
-  @Post(':userId/applications')
-  generateApplications(@Param('userId') userId: string) {
-    return this.diagnosticsService.generateApplicationsDiagnostic(userId);
+  @Get(':userId/scores')
+  async getHistory(@Param('userId') userId: string) {
+    return this.diagnosticsService.getScoreHistory(userId);
   }
 
-  @Get(':userId')
-  getActive(@Param('userId') userId: string) {
-    return this.diagnosticsService.getActiveDiagnostics(userId);
+  @Get(':userId/summary')
+  async getSummary(@Param('userId') userId: string) {
+    return this.diagnosticsService.getDashboardSummary(userId);
+  }
+
+  @Post(':userId/generate')
+  async runAnalysis(@Param('userId') userId: string) {
+    return this.diagnosticsService.generateBehavioral(userId);
   }
 }

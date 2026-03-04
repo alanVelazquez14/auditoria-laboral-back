@@ -13,7 +13,7 @@ import { RoleCategory } from '../common/enums/role-category.enum';
 import { CvType } from '../common/enums/cv-type.enum';
 import { UserSkill } from '../user-skills/user-skill.entity';
 import { Score } from '../scores/score.entity';
-import { Diagnostic } from '../diagnostics/diagnostic.entity';
+import { Diagnostic } from '../diagnostics/entities/diagnostic.entity';
 import { JobApplication } from '../job-applications/entities/job-application.entity';
 
 @Entity('users')

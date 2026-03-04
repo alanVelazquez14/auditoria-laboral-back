@@ -6,10 +6,10 @@ import {
   CreateDateColumn,
   Index,
 } from 'typeorm';
-import { User } from '../users/user.entity';
-import { DiagnosticSource } from '../common/enums/diagnostic-source.enum';
-import { IssueType } from '../common/enums/issue-type.enum';
-import { DiagnosticPriority } from '../common/enums/diagnostic-priority.enum';
+import { User } from '../../users/user.entity';
+import { DiagnosticSource } from '../../common/enums/diagnostic-source.enum';
+import { IssueType } from '../../common/enums/issue-type.enum';
+import { DiagnosticPriority } from '../../common/enums/diagnostic-priority.enum';
 
 @Entity('diagnostics')
 @Index(['user', 'active'])
