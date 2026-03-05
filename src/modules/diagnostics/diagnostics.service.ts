@@ -78,7 +78,7 @@ export class DiagnosticsService {
     );
     await this.diagnosticRepo.save(diagnostics);
 
-    return this.getActiveDiagnostics(userId);
+    return this.getDashboardSummary(userId);
   }
 
   // --- LÓGICA DE CÁLCULO (MÉTODOS PRIVADOS) ---
@@ -108,17 +108,17 @@ export class DiagnosticsService {
       order: { calculatedAt: 'DESC' } as any,
     });
 
-    if (!lastScore) return 100; // Primer análisis: 100% base
+    if (!lastScore) return 0;
 
     const prevAvg =
       (Number(lastScore.disciplineScore) + Number(lastScore.alignmentScore)) /
       2;
     const currAvg = (currentDisc + currentAlig) / 2;
 
-    if (prevAvg === 0) return 100;
+    if (prevAvg === 0) return 0;
 
     // Retorna el porcentaje de cambio (ej: 105 si subió 5%, 90 si bajó 10%)
-    return parseFloat(((currAvg / prevAvg) * 100).toFixed(2));
+    return parseFloat((currAvg - prevAvg).toFixed(2));
   }
 
   private mapScoresToDiagnostics(
