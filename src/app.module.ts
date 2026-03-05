@@ -6,6 +6,7 @@ import { JobApplicationsModule } from './modules/job-applications/job-applicatio
 import { CheckoutModule } from './modules/checkout/checkout.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { join } from 'path';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { join } from 'path';
         entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       }),
     }),
+    AuthModule,
     UsersModule,
     JobApplicationsModule,
     CheckoutModule,

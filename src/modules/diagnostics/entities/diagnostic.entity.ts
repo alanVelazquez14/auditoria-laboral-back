@@ -50,6 +50,9 @@ export class Diagnostic {
   @Column({ length: 20 })
   engineVersion: string;
 
+  @Column({ type: 'text', nullable: true })
+  explanation?: string;
+
   @CreateDateColumn()
   generatedAt: Date;
 }

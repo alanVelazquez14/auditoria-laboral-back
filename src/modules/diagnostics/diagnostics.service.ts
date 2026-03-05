@@ -74,6 +74,7 @@ export class DiagnosticsService {
       userId,
       discipline,
       alignment,
+      apps.length,
     );
     await this.diagnosticRepo.save(diagnostics);
 
@@ -124,15 +125,17 @@ export class DiagnosticsService {
     userId: string,
     discipline: number,
     alignment: number,
+    totalApps: number,
   ): Partial<Diagnostic>[] {
     const diagnostics: Partial<Diagnostic>[] = [];
 
-    if (discipline < 60) {
+    if (totalApps > 0 && discipline < 60) {
       diagnostics.push({
         user: { id: userId } as any,
         source: DiagnosticSource.BEHAVIORAL,
         issue: IssueType.LOW_DISCIPLINE,
         priority: DiagnosticPriority.HIGH,
+        explanation: `Tu puntaje de disciplina es ${discipline}/100. Esto indica una frecuencia de postulación baja.`,
         recommendedAction:
           'Incrementar la frecuencia de postulaciones semanales.',
         notRecommendedAction: 'Postular de manera inconsistente.',
@@ -141,12 +144,13 @@ export class DiagnosticsService {
       });
     }
 
-    if (alignment < 50) {
+    if (totalApps > 0 && alignment < 50) {
       diagnostics.push({
         user: { id: userId } as any,
         source: DiagnosticSource.BEHAVIORAL,
         issue: IssueType.LOW_MATCH,
         priority: DiagnosticPriority.MEDIUM,
+        explanation: `Tu alineación es del ${alignment}%. Estás aplicando a vacantes que no coinciden con tu experiencia.`,
         recommendedAction: 'Alinear las búsquedas con tu perfil y seniority.',
         notRecommendedAction:
           'Aplicar a roles que no coinciden con tu experiencia.',
@@ -159,10 +163,18 @@ export class DiagnosticsService {
   }
 
   private async deactivatePrevious(userId: string, source: DiagnosticSource) {
-    await this.diagnosticRepo.update(
-      { user: { id: userId }, source, active: true },
-      { active: false },
-    );
+    //   await this.diagnosticRepo.delete({
+    //     user: { id: userId },
+    //     source,
+    //   });
+    // }
+    await this.diagnosticRepo
+      .createQueryBuilder()
+      .delete()
+      .from(Diagnostic)
+      .where('userId = :userId', { userId })
+      .andWhere('source = :source', { source })
+      .execute();
   }
 
   async getActiveDiagnostics(userId: string) {
@@ -174,14 +186,14 @@ export class DiagnosticsService {
   async generateProfileDiagnostic(userId: string) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['skills'],
+      relations: ['userSkills'],
     });
 
     if (!user) throw new Error('User not found');
-
     await this.deactivatePrevious(userId, DiagnosticSource.INITIAL);
 
     const diagnostics: Partial<Diagnostic>[] = [];
+    const skillsCount = user.userSkills?.length || 0;
 
     if (!user.cvUrl) {
       diagnostics.push({
@@ -189,26 +201,29 @@ export class DiagnosticsService {
         source: DiagnosticSource.INITIAL,
         issue: IssueType.SENIORITY_MISMATCH,
         priority: DiagnosticPriority.HIGH,
+        explanation: 'No se detectó un CV cargado en tu perfil.',
         recommendedAction: 'Subir CV actualizado',
         notRecommendedAction: 'Postular sin CV adjunto',
+        active: true,
         engineVersion: this.ENGINE_VERSION,
       });
     }
 
-    if (!user.userSkills || user.userSkills.length < 3) {
+    if (skillsCount < 3) {
       diagnostics.push({
         user,
         source: DiagnosticSource.INITIAL,
         issue: IssueType.LOW_MATCH,
         priority: DiagnosticPriority.MEDIUM,
+        explanation: `Solo tienes ${skillsCount} habilidades listadas. Un perfil con más habilidades relevantes suele tener mejor desempeño.`,
         recommendedAction: 'Agregar más habilidades relevantes',
         notRecommendedAction: 'Mantener perfil incompleto',
+        active: true,
         engineVersion: this.ENGINE_VERSION,
       });
     }
 
     await this.diagnosticRepo.save(diagnostics);
-
     return this.getActiveDiagnostics(userId);
   }
 
@@ -230,8 +245,11 @@ export class DiagnosticsService {
         source: DiagnosticSource.BEHAVIORAL,
         issue: IssueType.LOW_DISCIPLINE,
         priority: DiagnosticPriority.MEDIUM,
+        explanation: `Has realizado ${applications.length} postulaciones.
+Para obtener métricas más representativas se recomienda al menos 5.`,
         recommendedAction: 'Aumentar frecuencia de postulación',
         notRecommendedAction: 'Postular esporádicamente',
+        active: true,
         engineVersion: this.ENGINE_VERSION,
       });
     }
@@ -244,8 +262,12 @@ export class DiagnosticsService {
         source: DiagnosticSource.BEHAVIORAL,
         issue: IssueType.LOW_RESPONSE_RATE,
         priority: DiagnosticPriority.HIGH,
+        explanation: `El ${Math.round(
+          (rejected / applications.length) * 100,
+        )}% de tus postulaciones fueron rechazadas.`,
         recommendedAction: 'Revisar estrategia de postulación',
         notRecommendedAction: 'Seguir aplicando sin ajustar CV',
+        active: true,
         engineVersion: this.ENGINE_VERSION,
       });
     }
@@ -263,17 +285,21 @@ export class DiagnosticsService {
   }
 
   async getDashboardSummary(userId: string) {
-    const [lastScore, diagnostics] = await Promise.all([
+    const [lastScore, diagnostics, totalApps] = await Promise.all([
       this.scoreRepo.findOne({
         where: { user: { id: userId } },
         order: { calculatedAt: 'DESC' },
       }),
       this.getActiveDiagnostics(userId),
+      this.jobAppRepo.count({
+        where: { user: { id: userId } },
+      }),
     ]);
 
     return {
       score: lastScore,
       diagnostics: diagnostics,
+      totalApplications: totalApps,
       lastUpdate: lastScore?.calculatedAt || null,
     };
   }
