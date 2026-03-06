@@ -3,14 +3,15 @@ import {
   IsString,
   IsArray,
   IsOptional,
-  ValidateNested,
   IsBoolean,
   IsUrl,
+  ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { Seniority } from '../../common/enums/seniority.enum';
 import { RoleCategory } from '../../common/enums/role-category.enum';
 import { CvType } from '../../common/enums/cv-type.enum';
+import { SkillDto } from './skill.dto';
 
 export class UpdateProfileDto {
   @IsEnum(CvType)
@@ -47,9 +48,6 @@ export class UpdateProfileDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  @Transform(({ value }) =>
-    Array.isArray(value) ? value : value?.split(',').filter(Boolean),
-  )
   stack: string[];
 
   @IsString()

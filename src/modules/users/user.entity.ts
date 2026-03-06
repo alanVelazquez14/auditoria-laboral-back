@@ -15,6 +15,7 @@ import { UserSkill } from '../user-skills/user-skill.entity';
 import { Score } from '../scores/score.entity';
 import { Diagnostic } from '../diagnostics/entities/diagnostic.entity';
 import { JobApplication } from '../job-applications/entities/job-application.entity';
+import { IsArray, IsOptional } from 'class-validator';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -68,6 +69,10 @@ export class User {
 
   @Column({ nullable: true })
   cvUrl?: string;
+
+  @IsArray()
+  @IsOptional()
+  cvHistory?: any[];
 
   @Column({ nullable: true })
   isRoleOptimized?: string; // "complete" | "partial" | "no"

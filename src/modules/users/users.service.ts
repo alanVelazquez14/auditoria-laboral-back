@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -232,16 +232,28 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // 1. Sincronización de compatibilidad:
+    if (updateProfileDto.cvUrl && updateProfileDto.cvUrl !== user.cvUrl) {
+      const history = user.cvHistory || [];
+
+      history.push({
+        url: updateProfileDto.cvUrl,
+        name: 'Currículum actualizado',
+        uploadedAt: new Date(),
+      });
+
+      user.cvHistory = history;
+      user.cvUrl = updateProfileDto.cvUrl;
+    }
+
     const compatibilityMapping = {
       roleTarget: updateProfileDto.targetRole,
       yearsOfExperience: this.parseYears(updateProfileDto.yearsExperience),
     };
 
-    // 2. Fusionar datos
-    Object.assign(user, updateProfileDto, compatibilityMapping);
+    const { cvUrl, ...restOfDto } = updateProfileDto;
 
-    // 3. Nueva lógica de validación de completitud
+    Object.assign(user, restOfDto, compatibilityMapping);
+
     user.profileCompleted = this.checkIfProfileIsActuallyComplete(user);
 
     const updatedUser = await this.userRepository.save(user);
