@@ -74,4 +74,11 @@ export class UsersController {
   async resetPassword(@Body() body: any) {
     return this.usersService.resetPassword(body.token, body.newPassword);
   }
+
+  @Post('social-login')
+  async socialLogin(
+    @Body() body: { email: string; fullName: string; googleId: string },
+  ) {
+    return this.usersService.loginWithSocial(body);
+  }
 }

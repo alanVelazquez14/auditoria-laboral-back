@@ -16,6 +16,7 @@ import { LoginDto } from '../auth/dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RoleCategory } from '../common/enums/role-category.enum';
 
 @Injectable()
 export class UsersService {
@@ -171,6 +172,52 @@ export class UsersService {
       console.error('Error enviando email:', error);
       throw error;
     }
+  }
+
+  async findOrCreateSocialUser(data: {
+    email: string;
+    fullName: string;
+    googleId: string;
+  }) {
+    let user = await this.userRepository.findOne({
+      where: { email: data.email },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    const newUser = this.userRepository.create({
+      email: data.email,
+      fullName: data.fullName,
+      password: bcrypt.hashSync(Math.random().toString(36), 10),
+      roleTarget: RoleCategory.FULLSTACK,
+    });
+
+    return await this.userRepository.save(newUser);
+  }
+
+  async loginWithSocial(data: {
+    email: string;
+    fullName: string;
+    googleId: string;
+  }) {
+    const user = await this.findOrCreateSocialUser(data);
+
+    const token = this.jwtService.sign({
+      id: user.id,
+      email: user.email,
+    });
+
+    return {
+      message: 'Login social exitoso',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+      },
+    };
   }
 
   async updateProfile(
