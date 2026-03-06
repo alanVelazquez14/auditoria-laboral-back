@@ -34,6 +34,12 @@ export class User {
   @Column({ select: false })
   password: string;
 
+  @Column({ type: 'text', nullable: true })
+  resetPasswordToken?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  resetPasswordExpires?: Date | null;
+
   // --- Datos del Profile Wizard ---
 
   @Column({ type: 'date', nullable: true })

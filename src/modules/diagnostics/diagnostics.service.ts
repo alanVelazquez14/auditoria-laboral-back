@@ -215,9 +215,9 @@ export class DiagnosticsService {
         source: DiagnosticSource.INITIAL,
         issue: IssueType.LOW_MATCH,
         priority: DiagnosticPriority.MEDIUM,
-        explanation: `Solo tienes ${skillsCount} habilidades listadas. Un perfil con más habilidades relevantes suele tener mejor desempeño.`,
-        recommendedAction: 'Agregar más habilidades relevantes',
-        notRecommendedAction: 'Mantener perfil incompleto',
+        explanation: `Tus últimas postulaciones muestran una alineación baja con los requisitos técnicos. Estás aplicando a vacantes donde solo cumples con una fracción de lo solicitado.`,
+        recommendedAction: 'Focaliza tus aplicaciones en vacantes donde tu Match sea superior al 70% o actualiza tu CV con las palabras clave que las empresas están buscando.',
+        notRecommendedAction: 'Mantener un CV genérico para vacantes con requisitos muy específicos.',
         active: true,
         engineVersion: this.ENGINE_VERSION,
       });

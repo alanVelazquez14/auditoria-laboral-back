@@ -64,4 +64,14 @@ export class UsersController {
   async login(@Body() loginDto: LoginDto) {
     return this.usersService.login(loginDto);
   }
+
+  @Post('forgot-password')
+  forgotPassword(@Body('email') email: string) {
+    return this.usersService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    return this.usersService.resetPassword(body.token, body.newPassword);
+  }
 }

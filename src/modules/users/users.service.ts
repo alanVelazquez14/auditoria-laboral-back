@@ -3,9 +3,10 @@ import {
   ConflictException,
   NotFoundException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,6 +14,8 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginDto } from '../auth/dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +23,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
+
+    private readonly mailerService: MailerService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -98,6 +103,76 @@ export class UsersService {
     };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user) throw new NotFoundException('Email no registrado');
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000);
+
+    await this.userRepository.save(user);
+
+    try {
+      await this.sendRecoveryEmail(user.email, token);
+    } catch (error) {
+      console.error('Mailtrap falló, pero el token se guardó:', token);
+    }
+
+    return { message: 'Se ha enviado un correo de recuperación.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const cleanToken = token.trim();
+
+    const user = await this.userRepository.findOne({
+      where: { resetPasswordToken: cleanToken },
+    });
+
+    if (!user) {
+      throw new BadRequestException('El link es inválido o ha expirado.');
+    }
+
+    if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+      throw new BadRequestException('El link es inválido o ha expirado.');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await this.userRepository.save(user);
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  async sendRecoveryEmail(email: string, token: string) {
+    const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
+
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Restablecer contraseña - DepurApp',
+        html: `
+          <div style="font-family: sans-serif; background-color: #090812; color: #ffffff; padding: 40px; text-align: center; border-radius: 10px;">
+            <h1 style="color: #7c3aed; margin-bottom: 20px;">DepurApp</h1>
+            <p style="font-size: 16px; color: #9ca3af;">Has solicitado restablecer tu contraseña. Haz clic en el botón de abajo para continuar:</p>
+            <div style="margin: 30px 0;">
+              <a href="${url}" style="background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px;">
+                Restablecer Contraseña
+              </a>
+            </div>
+            <p style="font-size: 12px; color: #4b5563;">Este enlace expirará en 1 hora. Si no solicitaste este cambio, puedes ignorar este correo.</p>
+          </div>
+        `,
+      });
+      console.log(`Email de recuperación enviado a: ${email}`);
+    } catch (error) {
+      console.error('Error enviando email:', error);
+      throw error;
+    }
+  }
+
   async updateProfile(
     userId: string,
     updateProfileDto: UpdateProfileDto,
@@ -111,10 +186,8 @@ export class UsersService {
     }
 
     // 1. Sincronización de compatibilidad:
-    // Mapeamos los campos nuevos del Wizard a los campos "core" de la entidad
-    // Esto evita que 'roleTarget' o 'yearsOfExperience' queden en null/0
     const compatibilityMapping = {
-      roleTarget: updateProfileDto.targetRole, // Mapea backend/frontend
+      roleTarget: updateProfileDto.targetRole,
       yearsOfExperience: this.parseYears(updateProfileDto.yearsExperience),
     };
 
