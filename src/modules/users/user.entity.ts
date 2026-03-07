@@ -62,13 +62,16 @@ export class User {
   roleTarget?: RoleCategory;
 
   @Column({ nullable: true })
-  targetRole?: string; // Para recibirlo directamente del DTO
+  targetRole?: string;
 
   @Column({ type: 'enum', enum: CvType, nullable: true })
   cvType?: CvType;
 
   @Column({ nullable: true })
   cvUrl?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  lastAnalysis: any;
 
   @IsArray()
   @IsOptional()

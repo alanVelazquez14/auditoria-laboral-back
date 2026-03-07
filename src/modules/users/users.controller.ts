@@ -1,12 +1,17 @@
 import {
   Body,
   Controller,
+  FileTypeValidator,
   Get,
+  MaxFileSizeValidator,
   NotFoundException,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -16,6 +21,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginDto } from '../auth/dto/login.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 export class UsersController {
@@ -80,5 +86,25 @@ export class UsersController {
     @Body() body: { email: string; fullName: string; googleId: string },
   ) {
     return this.usersService.loginWithSocial(body);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('upload-cv')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCV(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    const user = req.user;
+
+    return this.usersService.processCV(file, user);
   }
 }

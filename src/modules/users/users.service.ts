@@ -17,6 +17,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { RoleCategory } from '../common/enums/role-category.enum';
+import { AiService } from 'src/ai/ai.service';
+import { extractTextFromPDF } from 'src/utils/pdf-extractor';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +28,8 @@ export class UsersService {
     private jwtService: JwtService,
 
     private readonly mailerService: MailerService,
+
+    private readonly aiService: AiService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -259,6 +263,50 @@ export class UsersService {
     const updatedUser = await this.userRepository.save(user);
 
     return this.toResponseDto(updatedUser);
+  }
+
+  async processCV(file: Express.Multer.File, authUser: any) {
+    if (!file || !file.buffer) {
+      throw new Error('Archivo no recibido correctamente');
+    }
+
+    try {
+      // 1. Buscamos al usuario para obtener su stack y validar existencia
+      const user = await this.userRepository.findOne({
+        where: { id: authUser.id },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // 2. Extraer texto del PDF
+      const cvText = await extractTextFromPDF(file.buffer);
+
+      console.log('--- ENVIANDO A GEMINI ---');
+
+      // 3. Llamamos a la IA pasándole el stack del usuario
+      const analysis = await this.aiService.analyzeCVWithATS(
+        cvText,
+        user.stack || [], // Usamos el stack real de la DB
+      );
+
+      // 4. PERSISTENCIA: Guardamos el análisis y la fecha en la DB
+      await this.userRepository.update(authUser.id, {
+        lastAnalysis: analysis,
+        updatedAt: new Date(),
+        // cvUrl: 'aquí_iría_la_url_si_subes_a_S3_o_Cloudinary'
+      });
+
+      // 5. Retornamos el análisis al frontend
+      return {
+        message: 'Análisis completado con éxito',
+        ...analysis,
+      };
+    } catch (error) {
+      console.error('ERROR EN PROCESAMIENTO:', error);
+      throw new Error('Error al procesar el CV: ' + error.message);
+    }
   }
 
   async findOne(id: string): Promise<UserResponseDto> {

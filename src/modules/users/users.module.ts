@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
 import { CloudinaryProvider } from '../common/enums/cloudinary/cloudinary.provider';
+import { AiService } from 'src/ai/ai.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { CloudinaryProvider } from '../common/enums/cloudinary/cloudinary.provid
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, CloudinaryService, CloudinaryProvider],
+  providers: [UsersService, CloudinaryService, CloudinaryProvider, AiService],
   exports: [UsersService],
 })
 export class UsersModule {}
