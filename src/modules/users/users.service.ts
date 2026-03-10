@@ -399,4 +399,37 @@ export class UsersService {
       ],
     });
   }
+
+  async canPerformDiagnostic(
+    userId: string,
+  ): Promise<{ allowed: boolean; remaining: number }> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    const MAX_LIMIT = 5;
+    const now = new Date();
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (
+      user.lastDiagnosticDate &&
+      user.lastDiagnosticDate.toDateString() !== now.toDateString()
+    ) {
+      user.dailyDiagnosticCount = 0;
+      await this.userRepository.save(user);
+    }
+
+    const remaining = MAX_LIMIT - user.dailyDiagnosticCount;
+    return {
+      allowed: remaining > 0,
+      remaining: Math.max(0, remaining),
+    };
+  }
+
+  async incrementDiagnosticCount(userId: string) {
+    await this.userRepository.update(userId, {
+      dailyDiagnosticCount: () => '"dailyDiagnosticCount" + 1',
+      lastDiagnosticDate: new Date(),
+    });
+  }
 }

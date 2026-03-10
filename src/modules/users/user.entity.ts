@@ -79,6 +79,12 @@ export class User {
   @Column({ type: 'jsonb', nullable: true })
   lastAnalysis: any;
 
+  @Column({ default: 0 })
+  dailyDiagnosticCount: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastDiagnosticDate: Date;
+
   @IsArray()
   @IsOptional()
   cvHistory?: any[];

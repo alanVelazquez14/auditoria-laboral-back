@@ -3,6 +3,8 @@ import {
   Controller,
   FileTypeValidator,
   Get,
+  HttpException,
+  HttpStatus,
   MaxFileSizeValidator,
   NotFoundException,
   Param,
@@ -20,7 +22,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginDto } from '../auth/dto/login.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 
@@ -43,6 +45,12 @@ export class UsersController {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
     return user;
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me/quota')
+  async getQuota(@Req() req: any) {
+    return this.usersService.canPerformDiagnostic(req.user.id);
   }
 
   @Post('register')
@@ -119,6 +127,21 @@ export class UsersController {
   ) {
     const user = req.user;
 
-    return this.usersService.processCV(file, user);
+    const quota = await this.usersService.canPerformDiagnostic(user.id);
+
+    if (!quota.allowed) {
+      throw new HttpException(
+        'Has alcanzado el límite de 5 diagnósticos diarios. Podrás volver a intentar en 24hs.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const result = await this.usersService.processCV(file, user);
+    await this.usersService.incrementDiagnosticCount(user.id);
+
+    return {
+      ...result,
+      remainingDiagnostics: quota.remaining - 1,
+    };
   }
 }
