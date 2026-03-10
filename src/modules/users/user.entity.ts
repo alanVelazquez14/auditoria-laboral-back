@@ -41,6 +41,12 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   resetPasswordExpires?: Date | null;
 
+  @Column({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lockUntil: Date | null;
+
   // --- Datos del Profile Wizard ---
 
   @Column({ type: 'date', nullable: true })

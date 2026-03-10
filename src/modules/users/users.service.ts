@@ -88,12 +88,31 @@ export class UsersService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const diff = user.lockUntil.getTime() - Date.now();
+      const minutes = Math.ceil(diff / 60000);
+      throw new UnauthorizedException(
+        `Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutes} minutos.`,
+      );
+    }
+
     // Compara
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
+      const attempts = await this.incrementFailedAttempts(user.id);
+      // Si llega a 5 intentos, bloqueamos 10 min
+      if (attempts >= 5) {
+        await this.lockAccount(user.id, 10);
+        throw new UnauthorizedException(
+          'Demasiados intentos fallidos. Cuenta bloqueada por 10 minutos.',
+        );
+      }
+
       throw new UnauthorizedException('Credenciales inválidas');
     }
+
+    await this.resetFailedAttempts(user.id);
 
     const token = this.jwtService.sign({ id: user.id, email: user.email });
 
@@ -340,5 +359,44 @@ export class UsersService {
     ];
 
     return requiredFields.every((field) => !!field);
+  }
+
+  async incrementFailedAttempts(userId: string) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (user) {
+      const newAttempts = (user.failedLoginAttempts || 0) + 1;
+      await this.userRepository.update(userId, {
+        failedLoginAttempts: newAttempts,
+      });
+      return newAttempts;
+    }
+    return 0;
+  }
+
+  async lockAccount(userId: string, minutes: number) {
+    const lockUntil = new Date();
+    lockUntil.setMinutes(lockUntil.getMinutes() + minutes);
+    await this.userRepository.update(userId, { lockUntil });
+  }
+
+  async resetFailedAttempts(userId: string) {
+    await this.userRepository.update(userId, {
+      failedLoginAttempts: 0,
+      lockUntil: null,
+    });
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: [
+        'id',
+        'email',
+        'password',
+        'fullName',
+        'failedLoginAttempts',
+        'lockUntil',
+      ],
+    });
   }
 }

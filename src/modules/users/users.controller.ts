@@ -22,6 +22,7 @@ import { LoginDto } from '../auth/dto/login.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../common/enums/cloudinary/cloudinary.service';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('users')
 export class UsersController {
@@ -66,6 +67,7 @@ export class UsersController {
     });
   }
 
+  @Throttle({ default: { limit: 5, ttl: 600000 } })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.usersService.login(loginDto);
@@ -90,7 +92,19 @@ export class UsersController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('upload-cv')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.includes('pdf')) {
+          return callback(new Error('Solo se permiten archivos PDF'), false);
+        }
+        callback(null, true);
+      },
+    }),
+  )
   async uploadCV(
     @UploadedFile(
       new ParseFilePipe({

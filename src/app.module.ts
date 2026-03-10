@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './modules/users/users.module';
 import { JobApplicationsModule } from './modules/job-applications/job-applications.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
@@ -14,6 +16,13 @@ import { AuthModule } from './modules/auth/auth.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 20,
+      },
+    ]),
 
     MailerModule.forRootAsync({
       inject: [ConfigService],
@@ -52,6 +61,13 @@ import { AuthModule } from './modules/auth/auth.module';
     JobApplicationsModule,
     CheckoutModule,
     DiagnosticsModule,
+  ],
+
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
