@@ -67,7 +67,7 @@ export class UsersController {
   ): Promise<UserResponseDto> {
     let cvUrl: string | undefined = undefined;
     if (file) {
-      cvUrl = await this.cloudinaryService.uploadFile(file);
+      cvUrl = await this.cloudinaryService.uploadFile(file, id);
     }
     return this.usersService.updateProfile(id, {
       ...updateProfileDto,
