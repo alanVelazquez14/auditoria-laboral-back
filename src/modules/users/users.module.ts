@@ -8,10 +8,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 import { CloudinaryProvider } from '../common/cloudinary/cloudinary.provider';
 import { AiService } from 'src/ai/ai.service';
+import { CvHistoryModule } from '../cvHistory/cv-history.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
+    CvHistoryModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
