@@ -11,6 +11,8 @@ import { JobApplicationStatusHistory } from './entities/job-application-status-h
 import { User } from '../users/user.entity';
 import { JobStatus } from '../common/enums/job-status.enum';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
+import { CvHistory } from '../cvHistory/cv-history.entity';
+import { CvHistoryService } from '../cvHistory/cv-history.service';
 
 @Injectable()
 export class JobApplicationsService {
@@ -22,6 +24,13 @@ export class JobApplicationsService {
     private readonly statusHistoryRepository: Repository<JobApplicationStatusHistory>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(CvHistory)
+    private readonly cvHistoryRepository: Repository<CvHistory>,
+
+    @InjectRepository(CvHistory)
+    private readonly cvRepository: Repository<CvHistory>,
+    private readonly cvHistoryService: CvHistoryService,
   ) {}
 
   async create(userId: string, dto: CreateJobApplicationDto) {
@@ -34,7 +43,10 @@ export class JobApplicationsService {
       );
     }
 
-    // Verificación de duplicados usando los nombres de campo correctos
+    const currentCv = await this.cvHistoryRepository.findOne({
+      where: { user: { id: userId }, isMain: true },
+    });
+
     const existing = await this.jobApplicationRepository.findOne({
       where: {
         user: { id: userId },
@@ -56,6 +68,7 @@ export class JobApplicationsService {
         mode: dto.mode,
         matchLevel: dto.matchLevel,
         notes: dto.message,
+        cvVersion: currentCv ?? undefined,
       });
 
       const savedApplication = await manager.save(newApplication);
@@ -144,7 +157,6 @@ export class JobApplicationsService {
 
     return applications;
   }
-  
 
   async seedTestData() {
     const users = await this.userRepository.find();
@@ -167,7 +179,21 @@ export class JobApplicationsService {
     ];
 
     for (const user of users) {
-      for (let i = 0; i < 5; i++) {
+      const oldCv = await this.cvHistoryService.createEntry(
+        user.id,
+        'https://storage.com/cv-v1.pdf',
+        { score: 45 },
+      );
+      await this.cvRepository.update(oldCv.id, { isMain: false }); // Ya no es el principal
+
+      // Un CV nuevo con score alto
+      const newCv = await this.cvHistoryService.createEntry(
+        user.id,
+        'https://storage.com/cv-v2-mejorado.pdf',
+        { score: 85 },
+      );
+
+      for (let i = 0; i < 6; i++) {
         const companyName =
           companies[Math.floor(Math.random() * companies.length)];
 
@@ -183,6 +209,7 @@ export class JobApplicationsService {
         });
 
         if (exists) continue;
+        const cvToUse = i < 3 ? oldCv : newCv;
 
         const application = await this.dataSource.transaction(
           async (manager) => {
@@ -191,7 +218,9 @@ export class JobApplicationsService {
               companyName,
               position,
               status: JobStatus.APPLIED,
-              matchLevel: Math.floor(Math.random() * 5) + 1,
+              matchLevel: i < 3 ? 2 : 5,
+
+              cvVersion: cvToUse,
             });
 
             const savedApp = await manager.save(newApp);
@@ -210,7 +239,13 @@ export class JobApplicationsService {
           },
         );
 
-        await this.simulateTransitions(application.id);
+        if (cvToUse === newCv) {
+          await this.changeStatus(application.id, JobStatus.REVIEWING);
+          await this.changeStatus(application.id, JobStatus.INTERVIEW);
+        } else {
+          if (Math.random() > 0.5)
+            await this.changeStatus(application.id, JobStatus.REJECTED);
+        }
       }
     }
 
