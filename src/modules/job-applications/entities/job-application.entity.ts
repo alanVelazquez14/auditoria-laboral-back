@@ -14,6 +14,7 @@ import { JobStatus } from '../../common/enums/job-status.enum';
 import { WorkMode } from '../../common/enums/work-mode.enum';
 import { JobApplicationStatusHistory } from './job-application-status-history.entity';
 import { Company } from 'src/modules/companies/company.entity';
+import { CvHistory } from 'src/modules/cvHistory/cv-history.entity';
 
 @Entity('job_applications')
 @Index(['user', 'companyName', 'position'])
@@ -78,4 +79,7 @@ export class JobApplication {
     { cascade: true },
   )
   statusHistory: JobApplicationStatusHistory[];
+
+  @ManyToOne(() => CvHistory, (cv) => cv.applications, { nullable: true })
+  cvVersion: CvHistory;
 }
