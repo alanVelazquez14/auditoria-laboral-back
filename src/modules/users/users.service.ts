@@ -19,6 +19,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { RoleCategory } from '../common/enums/role-category.enum';
 import { AiService } from 'src/ai/ai.service';
 import { extractTextFromPDF } from 'src/utils/pdf-extractor';
+import { CvHistoryService } from '../cvHistory/cv-history.service';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,8 @@ export class UsersService {
     private readonly mailerService: MailerService,
 
     private readonly aiService: AiService,
+
+    private readonly cvHistoryService: CvHistoryService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -302,19 +305,22 @@ export class UsersService {
       // 2. Extraer texto del PDF
       const cvText = await extractTextFromPDF(file.buffer);
 
-      console.log('--- ENVIANDO A GEMINI ---');
-
       // 3. Llamamos a la IA pasándole el stack del usuario
       const analysis = await this.aiService.analyzeCVWithATS(
         cvText,
-        user.stack || [], // Usamos el stack real de la DB
+        user.stack || [],
+      );
+
+      await this.cvHistoryService.createEntry(
+        authUser.id,
+        user.cvUrl ?? 'url_no_disponible',
+        analysis,
       );
 
       // 4. PERSISTENCIA: Guardamos el análisis y la fecha en la DB
       await this.userRepository.update(authUser.id, {
         lastAnalysis: analysis,
         updatedAt: new Date(),
-        // cvUrl: 'aquí_iría_la_url_si_subes_a_S3_o_Cloudinary'
       });
 
       // 5. Retornamos el análisis al frontend

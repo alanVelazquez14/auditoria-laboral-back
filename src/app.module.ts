@@ -10,6 +10,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { join } from 'path';
 import { AuthModule } from './modules/auth/auth.module';
+import { CvHistoryModule } from './modules/cvHistory/cv-history.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { AuthModule } from './modules/auth/auth.module';
     JobApplicationsModule,
     CheckoutModule,
     DiagnosticsModule,
+    CvHistoryModule
   ],
 
   providers: [
