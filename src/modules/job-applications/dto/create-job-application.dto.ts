@@ -6,6 +6,7 @@ import {
   Min,
   Max,
   IsUrl,
+  IsUUID,
 } from 'class-validator';
 import { WorkMode } from '../../common/enums/work-mode.enum';
 import { RoleCategory } from 'src/modules/common/enums/role-category.enum';
@@ -39,4 +40,8 @@ export class CreateJobApplicationDto {
   @IsOptional()
   @IsString()
   message?: string;
+
+  @IsOptional()
+  @IsString()
+  appliedCvId?: string;
 }
