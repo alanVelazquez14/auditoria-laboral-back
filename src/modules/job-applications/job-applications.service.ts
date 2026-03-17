@@ -43,9 +43,17 @@ export class JobApplicationsService {
       );
     }
 
-    const currentCv = await this.cvHistoryRepository.findOne({
-      where: { user: { id: userId }, isMain: true },
-    });
+    let selectedCv;
+
+    if (dto.appliedCvId) {
+      selectedCv = await this.cvHistoryRepository.findOne({
+        where: { cvUrl: dto.appliedCvId, user: { id: userId } },
+      });
+    } else {
+      selectedCv = await this.cvHistoryRepository.findOne({
+        where: { user: { id: userId }, isMain: true },
+      });
+    }
 
     const existing = await this.jobApplicationRepository.findOne({
       where: {
@@ -68,7 +76,7 @@ export class JobApplicationsService {
         mode: dto.mode,
         matchLevel: dto.matchLevel,
         notes: dto.message,
-        cvVersion: currentCv ?? undefined,
+        cvVersion: selectedCv ?? undefined,
       });
 
       const savedApplication = await manager.save(newApplication);
@@ -151,7 +159,7 @@ export class JobApplicationsService {
 
     const applications = await this.jobApplicationRepository.find({
       where: { user: { id: userId } },
-      relations: ['statusHistory'],
+      relations: ['statusHistory', 'cvVersion'],
       order: { createdAt: 'DESC' },
     });
 
