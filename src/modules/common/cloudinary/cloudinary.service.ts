@@ -12,9 +12,8 @@ export class CloudinaryService {
       const upload = cloudinary.uploader.upload_stream(
         {
           folder: 'depurapp_cvs',
-          resource_type: "image", 
+          resource_type: "auto", 
           public_id: `cv_${userId}`,
-          format: 'pdf',
           overwrite: true,
         },
         (error, result) => {

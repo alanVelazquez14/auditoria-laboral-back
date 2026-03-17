@@ -11,6 +11,12 @@ export class CvHistoryService {
   ) {}
 
   async createEntry(userId: string, cvUrl: string, analysis: any) {
+    const finalAnalysis = {
+      score: analysis?.score ?? 0,
+      sections: analysis?.sections ?? [],
+      analysis: analysis?.analysis ?? 'Carga inicial de perfil',
+    };
+
     await this.cvRepository.update(
       { user: { id: userId }, isMain: true },
       { isMain: false },
@@ -18,7 +24,7 @@ export class CvHistoryService {
 
     const newEntry = this.cvRepository.create({
       cvUrl,
-      analysis,
+      analysis: finalAnalysis,
       isMain: true,
       user: { id: userId },
     });
@@ -29,13 +35,14 @@ export class CvHistoryService {
   async getEvolutionData(userId: string) {
     const history = await this.cvRepository.find({
       where: { user: { id: userId } },
-      order: { createdAt: 'ASC' },
+      order: { createdAt: 'DESC' },
     });
 
     return history.map((entry) => ({
       date: entry.createdAt,
       score: entry.analysis.score,
       versionId: entry.id,
+      cvURL: entry.cvUrl,
     }));
   }
 

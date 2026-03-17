@@ -269,6 +269,12 @@ export class UsersService {
 
       user.cvHistory = history;
       user.cvUrl = updateProfileDto.cvUrl;
+
+      await this.cvHistoryService.createEntry(userId, updateProfileDto.cvUrl, {
+        score: 70,
+        sections: [],
+        analysis: 'Perfil completado',
+      });
     }
 
     const compatibilityMapping = {
