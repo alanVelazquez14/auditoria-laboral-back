@@ -17,6 +17,9 @@ export class CvHistory {
   @Column()
   cvUrl: string;
 
+  @Column({ type: 'int', nullable: true })
+  score: number;
+
   @Column({ type: 'jsonb' })
   analysis: any;
 
