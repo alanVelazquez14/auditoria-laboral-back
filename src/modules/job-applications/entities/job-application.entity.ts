@@ -8,6 +8,7 @@ import {
   Index,
   Column,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/user.entity';
 import { JobStatus } from '../../common/enums/job-status.enum';
@@ -81,5 +82,6 @@ export class JobApplication {
   statusHistory: JobApplicationStatusHistory[];
 
   @ManyToOne(() => CvHistory, (cv) => cv.applications, { nullable: true })
+  @JoinColumn({ name: 'cvVersionId' })
   cvVersion: CvHistory;
 }

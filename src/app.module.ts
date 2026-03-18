@@ -11,6 +11,7 @@ import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { join } from 'path';
 import { AuthModule } from './modules/auth/auth.module';
 import { CvHistoryModule } from './modules/cvHistory/cv-history.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -62,7 +63,8 @@ import { CvHistoryModule } from './modules/cvHistory/cv-history.module';
     JobApplicationsModule,
     CheckoutModule,
     DiagnosticsModule,
-    CvHistoryModule
+    CvHistoryModule,
+    AnalyticsModule,
   ],
 
   providers: [
