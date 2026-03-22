@@ -20,6 +20,7 @@ import { RoleCategory } from '../common/enums/role-category.enum';
 import { AiService } from 'src/ai/ai.service';
 import { extractTextFromPDF } from 'src/utils/pdf-extractor';
 import { CvHistoryService } from '../cvHistory/cv-history.service';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
@@ -33,6 +34,8 @@ export class UsersService {
     private readonly aiService: AiService,
 
     private readonly cvHistoryService: CvHistoryService,
+
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -252,29 +255,23 @@ export class UsersService {
   ): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
+      relations: ['cvHistory'],
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (updateProfileDto.cvUrl && updateProfileDto.cvUrl !== user.cvUrl) {
-      const history = user.cvHistory || [];
-
-      history.push({
-        url: updateProfileDto.cvUrl,
-        name: 'Currículum actualizado',
-        uploadedAt: new Date(),
-      });
-
-      user.cvHistory = history;
-      user.cvUrl = updateProfileDto.cvUrl;
+    if (updateProfileDto.cvUrl) {
+      const currentScore = updateProfileDto.analysis?.score || 78;
 
       await this.cvHistoryService.createEntry(userId, updateProfileDto.cvUrl, {
-        score: 70,
-        sections: [],
-        analysis: 'Perfil completado',
+        score: currentScore,
+        sections: updateProfileDto.analysis?.sections || [],
+        analysis: updateProfileDto.analysis?.analysis || 'Perfil actualizado',
       });
+
+      user.cvUrl = updateProfileDto.cvUrl;
     }
 
     const compatibilityMapping = {
@@ -308,7 +305,13 @@ export class UsersService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      // 2. Extraer texto del PDF
+      // Subir CV
+      const uploadedUrl = await this.cloudinaryService.uploadFile(
+        file,
+        authUser.id,
+      );
+
+      // Extraer texto
       const cvText = await extractTextFromPDF(file.buffer);
 
       // 3. Llamamos a la IA pasándole el stack del usuario
@@ -319,12 +322,13 @@ export class UsersService {
 
       await this.cvHistoryService.createEntry(
         authUser.id,
-        user.cvUrl ?? 'url_no_disponible',
+        uploadedUrl,
         analysis,
       );
 
       // 4. PERSISTENCIA: Guardamos el análisis y la fecha en la DB
       await this.userRepository.update(authUser.id, {
+        cvUrl: uploadedUrl,
         lastAnalysis: analysis,
         updatedAt: new Date(),
       });

@@ -21,6 +21,13 @@ export class UpdateProfileDto {
   @IsOptional()
   cvUrl?: string;
 
+  @IsOptional()
+  analysis?: {
+    score: number;
+    sections: any[];
+    analysis: string;
+  };
+
   @IsString()
   isRoleOptimized: 'complete' | 'partial' | 'no';
 

@@ -47,7 +47,7 @@ export class JobApplicationsService {
 
     if (dto.appliedCvId) {
       selectedCv = await this.cvHistoryRepository.findOne({
-        where: { cvUrl: dto.appliedCvId, user: { id: userId } },
+        where: { id: dto.appliedCvId, user: { id: userId } },
       });
     } else {
       selectedCv = await this.cvHistoryRepository.findOne({

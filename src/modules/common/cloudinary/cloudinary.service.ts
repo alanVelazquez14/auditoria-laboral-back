@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   v2 as cloudinary,
-  UploadApiResponse,
-  UploadApiErrorResponse,
 } from 'cloudinary';
 
 @Injectable()
@@ -13,8 +11,8 @@ export class CloudinaryService {
         {
           folder: 'depurapp_cvs',
           resource_type: "auto", 
-          public_id: `cv_${userId}`,
-          overwrite: true,
+          public_id: `cv_${userId}_${Date.now()}`,
+          overwrite: false,
         },
         (error, result) => {
           if (error) return reject(error);
