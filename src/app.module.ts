@@ -12,6 +12,7 @@ import { join } from 'path';
 import { AuthModule } from './modules/auth/auth.module';
 import { CvHistoryModule } from './modules/cvHistory/cv-history.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { InterviewModule } from './modules/interviews/interview.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     DiagnosticsModule,
     CvHistoryModule,
     AnalyticsModule,
+    InterviewModule,
   ],
 
   providers: [

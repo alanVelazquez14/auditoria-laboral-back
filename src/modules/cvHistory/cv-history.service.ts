@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CvHistory } from './cv-history.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JobStatus } from '../common/enums/job-status.enum';
 
 @Injectable()
 export class CvHistoryService {
@@ -55,7 +56,7 @@ export class CvHistoryService {
     return history.map((cv) => {
       const total = cv.applications.length;
       const success = cv.applications.filter((app) =>
-        ['entrevista', 'oferta'].includes(app.status),
+        [JobStatus.INTERVIEW, JobStatus.HIRED].includes(app.status),
       ).length;
 
       return {
