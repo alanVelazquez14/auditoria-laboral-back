@@ -16,9 +16,9 @@ export class AiService {
   }
 
   async analyzeCVWithATS(cvText: string, userStack: string[]) {
-  const currentDate = "marzo de 2026";
-  
-  const prompt = `
+    const currentDate = 'marzo de 2026';
+
+    const prompt = `
 Eres el Mentor Tech Lead de DepurApp. Analiza el CV para el stack: ${userStack.join(', ')}.
 FECHA ACTUAL DE REFERENCIA: ${currentDate}. No penalices fechas hasta marzo 2026 como futuras.
 
@@ -70,6 +70,27 @@ Responde EXCLUSIVAMENTE con un JSON que siga esta estructura exacta:
     } catch (error) {
       console.error('Error detallado:', error.response?.data || error.message);
       throw new Error('El motor de IA falló al analizar el CV');
+    }
+  }
+
+  async callGeminiRaw(prompt: string) {
+    try {
+      const response = await axios.post(`${this.apiUrl}?key=${this.apiKey}`, {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const text = response.data.candidates[0].content.parts[0].text;
+      const cleanJson = text.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanJson);
+    } catch (error) {
+      console.error(
+        'Error detallado en Gemini Raw:',
+        error.response?.data || error.message,
+      );
+      throw new Error('Fallo en la comunicación con el motor de IA');
     }
   }
 }
